@@ -51,27 +51,45 @@ public class BlogService {
         return listRecentResponse;
     }
 
+    public List<RecentDto> get5LimitRecentOrderByView(){
+        List<BlogEntity> blogEntities = blogRepo.findFirst5ByOrderByViewDesc();
+        List<RecentDto> recentDtos = new ArrayList<>();
+        for ( BlogEntity blog : blogEntities){
+            RecentDto recentDto = new RecentDto();
+            BeanUtils.copyProperties(blog, recentDto);
+            recentDtos.add(recentDto);
+        }
+        return recentDtos;
+    }
+
     public DetailPostResponse getDetailPostById(int id) {
         BlogEntity blogEntity = blogRepo.findById(id);
         DetailPostResponse detailPostResponse = new DetailPostResponse();
 
         if(blogEntity != null) {
+            blogEntity.setView(blogEntity.getView()+ 1);
+            blogRepo.save(blogEntity);
             BeanUtils.copyProperties(blogEntity,detailPostResponse);
         }
 
         return detailPostResponse;
     }
-    public List<DetailPostResponse> getListDetailPostByCategoryId(int id) {
-        List<BlogEntity> listBlogEntity = blogRepo.findByCategoryId(id);
-        List<DetailPostResponse> listDetailPostResponse = new ArrayList<>();
+    public ListRecentResponse getListDetailPostByCategoryId(int id, int page) {
+        ListRecentResponse listRecentResponse = new ListRecentResponse();
+        Pageable pageable = PageRequest.of(page-1 , 10, Sort.by("dateCreate").descending());
+        Page<BlogEntity> listBlogEntity = blogRepo.findByCategoryId(id ,pageable);
+        List<RecentDto> listRecent = new ArrayList<>();
 
-        if(!listBlogEntity.isEmpty()) {
-            for (BlogEntity blog : listBlogEntity){
-                DetailPostResponse detailPostResponse = new DetailPostResponse();
-                BeanUtils.copyProperties(blog, detailPostResponse);
-                listDetailPostResponse.add(detailPostResponse);
+        if(!listBlogEntity.getContent().isEmpty()) {
+            for (BlogEntity blog : listBlogEntity.getContent()){
+                RecentDto recentDto = new RecentDto();
+                BeanUtils.copyProperties(blog, recentDto);
+                listRecent.add(recentDto);
             }
         }
-        return listDetailPostResponse;
+        listRecentResponse.setRecentDtoList(listRecent);
+        listRecentResponse.setTotalPages(listBlogEntity.getTotalPages());
+        listRecentResponse.setTotalElement(listBlogEntity.getTotalElements());
+        return listRecentResponse;
     }
 }

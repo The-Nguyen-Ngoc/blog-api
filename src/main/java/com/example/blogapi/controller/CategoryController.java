@@ -1,5 +1,6 @@
 package com.example.blogapi.controller;
 
+import com.example.blogapi.dto.response.CategoryDto;
 import com.example.blogapi.entity.CategoryEntity;
 import com.example.blogapi.service.CategoryService;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +16,23 @@ public class CategoryController {
     public CategoryController(CategoryService categoryService) {
         this.categoryService = categoryService;
     }
-
     @GetMapping
     public ResponseEntity<?> listAllCategory() {
 
         List<CategoryEntity> listCategoryActiveIsTrue = categoryService.listCategoryActiveIsTrue();
+
+        if (listCategoryActiveIsTrue.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.ok(listCategoryActiveIsTrue);
+        }
+
+    }
+
+    @GetMapping("/parent")
+    public ResponseEntity<?> listAllCategoryWithParent() {
+
+        List<CategoryDto> listCategoryActiveIsTrue = categoryService.listCategoryActiveIsTrueAndChildren();
 
         if (listCategoryActiveIsTrue.isEmpty()) {
             return ResponseEntity.noContent().build();
