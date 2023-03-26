@@ -1,5 +1,6 @@
 package com.example.blogapi.service;
 
+import com.example.blogapi.config.EmailConfig;
 import com.example.blogapi.dto.response.DetailPostResponse;
 import com.example.blogapi.dto.response.ListRecentResponse;
 import com.example.blogapi.dto.response.RecentDto;
@@ -10,10 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mail.MailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,10 +22,12 @@ import java.util.Map;
 public class BlogService {
     private final BlogRepo blogRepo;
 
-    public BlogService(BlogRepo blogRepo) {
-        this.blogRepo = blogRepo;
-    }
+    private final MailSender mailSender;
 
+    public BlogService(BlogRepo blogRepo,  MailSender mailSender) {
+        this.blogRepo = blogRepo;
+        this.mailSender = mailSender;
+    }
     public BlogEntity addBlog(BlogEntity blog) {
         return blogRepo.save(blog);
     }
@@ -53,6 +56,16 @@ public class BlogService {
 
     public List<RecentDto> get5LimitRecentOrderByView(){
         List<BlogEntity> blogEntities = blogRepo.findFirst5ByOrderByViewDesc();
+        List<RecentDto> recentDtos = new ArrayList<>();
+        for ( BlogEntity blog : blogEntities){
+            RecentDto recentDto = new RecentDto();
+            BeanUtils.copyProperties(blog, recentDto);
+            recentDtos.add(recentDto);
+        }
+        return recentDtos;
+    }
+    public List<RecentDto> searchByKeyword(String keyword){
+        List<BlogEntity> blogEntities = blogRepo.findBlogEntitiesByKeyword(keyword);
         List<RecentDto> recentDtos = new ArrayList<>();
         for ( BlogEntity blog : blogEntities){
             RecentDto recentDto = new RecentDto();

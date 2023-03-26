@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="info" name="${env:app}" packages="" monitorInterval="30">
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%style{%d{ISO8601}}{blue} %highlight{%-5level }[%style{%t}{bright,blue}] %style{%C{1.}}{bright,yellow}  - Line:%L : %msg%n%throwable" />
+        </Console>
+        <RollingFile name="FileAppender"  fileName="/Users/thenn/Documents/_project/_ca_nhan/blog-api/src/main/resources/log/blog-api.log"
+                     filePattern="/Users/thenn/Documents/_project/_ca_nhan/blog-api/src/main/resources/log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - Line:%L - %msg%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="FileAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

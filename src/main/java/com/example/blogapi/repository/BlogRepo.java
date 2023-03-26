@@ -21,4 +21,6 @@ public interface BlogRepo extends PagingAndSortingRepository<BlogEntity, Integer
     Page<BlogEntity> findByCategoryId(int id, Pageable pageable);
 
     List<BlogEntity> findFirst5ByOrderByViewDesc();
+    @Query("select t from BlogEntity t where t.title like %?1% or  t.header like %?1% order by t.dateCreate desc" )
+    List<BlogEntity> findBlogEntitiesByKeyword(String keyword);
 }
