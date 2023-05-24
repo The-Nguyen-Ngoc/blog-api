@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.mail.MailSender;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,7 +32,10 @@ public class BlogService {
     public BlogEntity addBlog(BlogEntity blog) {
         return blogRepo.save(blog);
     }
-
+//    @Scheduled(fixedRate = 10000)
+//    public void printLine() {
+//        System.out.println("This line will be printed every 10 seconds.");
+//    }
     public ListRecentResponse getAllRecent(Map map) {
         ListRecentResponse listRecentResponse = new ListRecentResponse();
         int page = map.get("page") != null ? (Integer.parseInt(map.get("page").toString())) - 1 : 0;

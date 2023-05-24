@@ -5,16 +5,18 @@ import com.example.blogapi.dto.response.DetailPostResponse;
 import com.example.blogapi.dto.response.ListRecentResponse;
 import com.example.blogapi.dto.response.RecentDto;
 import com.example.blogapi.entity.BlogEntity;
-import com.example.blogapi.entity.EmailNewMember;
 import com.example.blogapi.repository.EmailNewMemberRepo;
 import com.example.blogapi.service.BlogService;
-import jakarta.mail.internet.MimeMessage;
+
+import com.example.blogapi.service.MyProducer;
+import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +31,10 @@ public class BlogController {
     private final JavaMailSender mailSender;
     private final EmailNewMemberRepo emailNewMemberRepo;
 
+    private static final String TOPIC = "emails";
+
+    @Autowired
+    private MyProducer kafkaTemplate;
 
     public BlogController(BlogService blogService, JavaMailSender mailSender, EmailNewMemberRepo emailNewMemberRepo) {
         this.blogService = blogService;
@@ -49,7 +55,7 @@ public class BlogController {
     @GetMapping("/recents")
     public ResponseEntity<?> getRecents(@RequestParam Map map) {
         logger.info("---------------------------------GET LIST RECENTS-----------------------------------");
-
+        logger.info("Recent project API: {}", map);
         ListRecentResponse listRecentResponse = blogService.getAllRecent(map);
         if (listRecentResponse.getRecentDtoList().isEmpty()) {
             return ResponseEntity.noContent().build();
@@ -116,34 +122,8 @@ public class BlogController {
 
         try {
             if (email != null) {
-                EmailNewMember emailNewMemberFind = emailNewMemberRepo.findEmailNewMemberByIp(email.getIp());
-                if (emailNewMemberFind == null) {
-                    EmailNewMember emailNewMember = new EmailNewMember();
-                    emailNewMember.setEmail(email.getEmailTo());
-                    emailNewMember.setIp(email.getIp());
-                    EmailNewMember emailNewMemberSaved = emailNewMemberRepo.save(emailNewMember);
-                    if(emailNewMemberSaved !=null){
-                        MimeMessage message = mailSender.createMimeMessage();
-                        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-                        boolean html = true;
-                        helper.setTo(email.getEmailTo());
-                        helper.setSubject("BLOG DEBUG CHÀO MỪNG THÀNH VIÊN MỚI!");
-                        helper.setText("\n" +
-                                "\t<body>\n" +
-                                "<h3>Xin chào,</h3> \n<p>" +
-                                " \n" +
-                                "Đội ngũ Blog Debug cảm ơn vì bạn đã đăng ký nhận thông báo sớm nhất với những bài viết trên blog của chúng tôi! Chúng tôi rất vui mừng khi có thêm thành viên mới và hy vọng bạn sẽ thấy những bài viết trên blog của chúng tôi hữu ích. <br><br>\n" +
-                                " \n" +
-                                "Nếu bạn có bất kỳ câu hỏi hoặc góp ý nào, xin đừng ngần ngại liên hệ với chúng tôi qua email này. Chúng tôi sẵn sàng hỗ trợ bạn bất cứ lúc nào. <br>Đừng quên truy cập Blog: <a href='fb.com'>debug.com.vn</a> của chúng tôi để xem những bài viết mới nhất.<br>\n" +
-                                " \n" +
-                                "Một lần nữa, cảm ơn bạn đã tham gia vào cộng đồng của chúng tôi!<br><br> \n" +
-                                " \n" +
-                                "Trân trọng,<br> \n" +
-                                "Đội ngũ quản trị viên Blog Debug.<br></p>\n" +
-                                "\t</body>", html);
-                        mailSender.send(message);
-                    }
-                }
+                kafkaTemplate.sendMessage("emails", email.getEmailTo());
+
 
             }
             return new ResponseEntity<>(email, HttpStatus.OK);
