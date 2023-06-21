@@ -24,10 +24,9 @@ public class MyConsumer {
     }
 
     @KafkaListener(topics = "emails", groupId = "myGroup")
-    public void listen(String messageee) throws MessagingException {
-        System.out.println("Received message: " + messageee);
-        EmailDetails email = new EmailDetails(messageee, null);
-        if (messageee != null) {
+    public void listen(EmailDetails email) throws MessagingException {
+        System.out.println("Received message: " + email);
+        if (email != null) {
             if (true) {
                 EmailNewMember emailNewMember = new EmailNewMember();
                 emailNewMember.setEmail(email.getEmailTo());

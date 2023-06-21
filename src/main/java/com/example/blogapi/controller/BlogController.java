@@ -91,7 +91,7 @@ public class BlogController {
     @GetMapping("/posts/{id}/{page}")
     public ResponseEntity<?> getListPostByCategoryId(@PathVariable int id, @PathVariable int page) {
         logger.info("---------------------------------GET POSTS BY PAGE-----------------------------------");
-        logger.info("REQUEST: " +"PAGE: "+ page +" ID: "+ id);
+        logger.info("REQUEST: " + "PAGE: " + page + " ID: " + id);
 
 
         ListRecentResponse listDetailPostRes = blogService.getListDetailPostByCategoryId(id, page);
@@ -105,7 +105,7 @@ public class BlogController {
     @GetMapping("/search")
     public ResponseEntity<?> searchAll(@RequestParam String keyword) {
         logger.info("---------------------------------SEARCH -----------------------------------");
-        logger.info("REQUEST: " +keyword);
+        logger.info("REQUEST: " + keyword);
 
         List<RecentDto> recentDtoList = blogService.searchByKeyword(keyword);
         if (recentDtoList.isEmpty()) {
@@ -118,13 +118,11 @@ public class BlogController {
     @PostMapping("/email")
     public ResponseEntity<?> submitEmail(@RequestBody EmailDetails email) {
         logger.info("---------------------------------SEND EMAIL NEW MEMBER-----------------------------------");
-        logger.info("REQUEST: " +email);
+        logger.info("REQUEST: " + email);
 
         try {
             if (email != null) {
-                kafkaTemplate.sendMessage("emails", email.getEmailTo());
-
-
+                    kafkaTemplate.sendMessage("emails", email);
             }
             return new ResponseEntity<>(email, HttpStatus.OK);
 
